@@ -1,0 +1,3 @@
+# Client-review demo: asks search engines not to index it. This is a request only; it is NOT access control.
+User-agent: *
+Disallow: /
