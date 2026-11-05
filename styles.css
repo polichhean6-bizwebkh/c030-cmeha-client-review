@@ -361,3 +361,43 @@ dialog#prop{max-width:min(520px,94vw)}
 /* fix found by the demo QA: on a 320 px phone the credit cards were wider than the screen */
 .credit-list{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))}
 .credit{min-width:0}.credit>span{min-width:0;overflow-wrap:anywhere}
+
+/* ---------------- final client-review presentation ---------------- */
+.tile .more{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:14px;font-weight:700;color:var(--gold)}
+.tile .more .ico{transition:transform .2s}.tile:hover .more .ico{transform:translateX(3px)}
+.purpose-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.pcard{position:relative;background:#fff;border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:var(--r);padding:30px 28px;box-shadow:var(--sh-s)}
+.pcard h3{font-size:21px;margin:14px 0 8px}.pcard p{margin:0;color:var(--muted);font-size:16.5px}
+.pnum{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:18px}
+.comm p{color:var(--muted);font-size:17.5px;margin:0 0 14px}
+.collage{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:stretch;min-height:380px}
+.collage>div{position:relative;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.collage .c2{margin-top:44px;margin-bottom:-24px}
+.ngrid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ncard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;text-align:left;font:inherit;color:inherit;text-decoration:none;cursor:pointer;padding:0;box-shadow:var(--sh-s);transition:box-shadow .25s,transform .25s}
+.ncard:hover{box-shadow:var(--sh);transform:translateY(-3px)}
+.ncard .im{position:relative;aspect-ratio:16/10}
+.ncard .nbd{padding:22px 24px 26px;display:flex;flex-direction:column;gap:10px;flex:1}
+.ncard h3{font-size:20px;margin:2px 0 0}.ncard p{margin:0;color:var(--muted);font-size:15.5px;flex:1}
+.ncard .link{color:var(--blue);margin-top:4px}
+.ev-band{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:44px;padding:28px 32px;border-radius:var(--r);background:var(--blue-xl);border-left:5px solid var(--gold)}
+.ev-band .ib,.glance .ib,.chl .ib{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:var(--blue);color:#fff;flex:none}
+.ev-band h2{font-size:24px;margin:0 0 4px}.ev-band p{margin:0;color:var(--muted)}.ev-band>div{flex:1;min-width:240px}
+.story2 p{color:var(--muted);font-size:17.5px;margin:0 0 14px}
+.glance{background:linear-gradient(160deg,var(--blue-d),var(--blue));color:#e1e3ff;border-radius:var(--r);padding:clamp(26px,3.4vw,40px);box-shadow:var(--sh)}
+.glance h3{color:#fff;font-size:22px;margin:0 0 18px}
+.glance ul{list-style:none;margin:0;padding:0;display:grid;gap:16px}.glance li{display:flex;gap:14px;align-items:center;font-weight:600;color:#fff}
+.glance .ib{background:rgba(255,255,255,.16);color:#ffd36b}
+.mem-how{margin:26px 0 0;color:var(--muted)}
+.credit-line{margin:22px 0 0;color:var(--muted);font-size:14px}
+.cinfo .mailrow{display:flex;gap:14px;margin:22px 0 18px}.cinfo .mailrow .ib{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.14);display:grid;place-items:center;flex:none;color:#ffd36b}
+.cinfo .bigmail{font-size:clamp(17px,2vw,21px);word-break:break-word}
+.cinfo .cbtn{margin:4px 0 8px}
+.cinfo .chh{color:#fff;font-size:19px;margin:30px 0 4px}
+.cinfo .chl{margin:14px 0 0;gap:14px}
+.cinfo .chl a{display:flex;gap:14px;align-items:center;word-break:normal;text-decoration:none}
+.cinfo .chl a:hover b{text-decoration:underline}
+.cinfo .chl .ib{background:rgba(255,255,255,.14);color:#ffd36b;width:42px;height:42px}
+.cinfo .chl b{display:block;color:#fff}.cinfo .chl small{display:block}
+@media(max-width:980px){.purpose-grid,.ngrid{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.purpose-grid,.ngrid{grid-template-columns:1fr}.collage{min-height:280px}.collage .c2{margin-bottom:0}.ev-band{padding:22px}}

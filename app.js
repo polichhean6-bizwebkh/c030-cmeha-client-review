@@ -223,8 +223,8 @@ const OFFICIAL = {
     "Promote humanitarian and charitable activities, assisting victims, people who are sick, and orphans."
   ],
   membership: [
-    { slug: "membership-ordinary", t: "Ordinary Members", x: "Open to Muslim university graduates recognized by CMEHA." },
-    { slug: "membership-associate", t: "Associate Members", x: "Open to members of Cambodian communities regardless of race or religion." }
+    { slug: "membership-ordinary", t: "Ordinary Members", x: "Open to all Muslim graduates from universities recognized by CMEHA." },
+    { slug: "membership-associate", t: "Associate Members", x: "Open to all members of the community in Cambodia, regardless of race or religion." }
   ],
   // The five elements of the logo, as described by the client. cx/cy: where the element sits in assets/logo.jpg (fractions of its width/height).
   logo: [
@@ -253,8 +253,8 @@ const OFFICIAL_KM = {
     "ជំរុញសកម្មភាពមនុស្សធម៌ និងសប្បុរសធម៌ ដើម្បីជួយជនរងគ្រោះ អ្នកជំងឺ និងកុមារកំព្រា។"
   ],
   membership: [
-    { t: "សមាជិកសាមញ្ញ", x: "សម្រាប់និស្សិតមូស្លិមដែលបានបញ្ចប់ការសិក្សាថ្នាក់ឧត្តមសិក្សា ហើយត្រូវបាន CMEHA ទទួលស្គាល់។" },
-    { t: "សមាជិកសហការី", x: "សម្រាប់សមាជិកនៃសហគមន៍កម្ពុជា ដោយមិនប្រកាន់ពូជសាសន៍ ឬសាសនា។" }
+    { t: "សមាជិកសាមញ្ញ", x: "បើកចំហសម្រាប់និស្សិតមូស្លិមទាំងអស់ ដែលបានបញ្ចប់ការសិក្សាពីសាកលវិទ្យាល័យដែលត្រូវបាន CMEHA ទទួលស្គាល់។" },
+    { t: "សមាជិកសហការី", x: "បើកចំហសម្រាប់សមាជិកទាំងអស់នៃសហគមន៍នៅកម្ពុជា ដោយមិនប្រកាន់ពូជសាសន៍ ឬសាសនា។" }
   ],
   logo: [
     { t: "រង្វង់មូល", x: "ជំនាន់នៃបុគ្គលដែលមានការអប់រំ ដែលប្តេជ្ញាចិត្តចំពោះការរីកចម្រើន និងសុខុមាលភាពរបស់សហគមន៍។" },
@@ -340,7 +340,7 @@ function buildViews() {
   PROGRAMS = PREVIEW.programs ? PROPOSED_AREAS : [...progs, ...projs];
   const nw = live("news").map((e) => mapNews(e, "news")).sort(cmp), ev = live("events").map((e) => mapNews(e, "event")).sort((a, b) => cmp(b, a));
   PREVIEW.news = SAMPLES && !(nw.length || ev.length);
-  NEWS = DEMO ? [] : PREVIEW.news ? SAMPLE_NEWS : [...nw, ...ev];
+  NEWS = DEMO ? DEMO_ARTICLES : PREVIEW.news ? SAMPLE_NEWS : [...nw, ...ev];
   const SIZES = ["big", "", "t", "w", "", "t", "", "", "", ""];
   const gal = live("gallery").filter((e) => imgOf(e)).map((e, i) => { const g = (sh(e, "category") || "").trim().toLowerCase(); const t_ = loc(e, "title"); return { live: true, c: ["activities", "programs", "events"].includes(g) ? g : "activities", img: imgOf(e), s: SIZES[i % SIZES.length], cap: esc(t_.v), capRaw: t_.v }; });
   PREVIEW.gallery = SAMPLES && !gal.length;
@@ -358,7 +358,7 @@ function teamBlock() {
   return `<div class="team rv">${team.map((m) => `<article class="tcard"><div class="tph">${m.img ? phUrl(m.img, "center 20%") : il("mark")}</div><h3>${w(m, "name", m.name)}</h3>${m.pos ? `<p class="tpos">${w(m, "pos", m.pos)}</p>` : ""}${m.bio ? `<div class="tbio">${m.fb_bio && lang === "km" ? `<div lang="en">${m.bio}</div>` : m.bio}</div>` : ""}</article>`).join("")}</div>`;
 }
 const AREAS_ONLY = () => PROGRAMS.length > 0 && PROGRAMS.every((p) => p.area);
-const areaNoteHtml = () => (PROGRAMS.some((p) => p.area) ? `<p class="previewnote">${anyConfirmed() ? t("areaNoteConf") : tb("areaNote")}</p>` : "");
+const areaNoteHtml = () => (!DEMO && PROGRAMS.some((p) => p.area) ? `<p class="previewnote">${anyConfirmed() ? t("areaNoteConf") : tb("areaNote")}</p>` : "");
 const emptyBlock = (k) => `<div class="empty">${t(k)}</div>`;
 // Home banner from the CMS (Pages -> "Home page - main banner"). Without a published record the approved default stays.
 const heroRec = () => pg("home-hero");
@@ -403,7 +403,7 @@ function homeProgramsLede() {
 }
 function leadershipSection() {
   const team = teamBlock();
-  if (!SAMPLES && !team && !pg("leadership")) return "";
+  if (DEMO || (!SAMPLES && !team && !pg("leadership"))) return "";
   // Both kinds of content are shown when both exist: the published Leadership message first, the team members below it.
   const leader = `<div class="leader rv"><div class="art">${il("mark")}</div><div>${pgBody("leadership", `<p style="margin:0">${tb("leadP")}</p>`)}</div></div>`;
   const body = team && pg("leadership") ? `${leader}<div style="margin-top:36px">${team}</div>` : team || leader;
@@ -457,7 +457,7 @@ const pic = (o, pos = "center") => (o.img ? phUrl(o.img, pos) : o.ph ? (SAMPLES 
 const gpic = (g) => (g.photo ? `<div class="il"><img src="assets/photos/${g.photo}.jpg" alt="${esc(gcap(g))}" loading="lazy" decoding="async"></div>` : g.img ? phUrl(g.img) : il(g.ill, g.tone));
 // Demo gallery: the credited stock photographs, captioned with what their source says about them (never presented as CMEHA activities)
 const DEMO_GALLERY_KEYS = ["a1", "p3", "a2", "p5", "a3", "p1", "a4", "p4", "a5", "p2", "intro", "p6"];
-const demoGallery = () => DEMO_GALLERY_KEYS.map((k, i) => { const c = CREDITS.find((x) => x[0] === k); return { photo: k, c: "activities", s: ["big", "", "t", "w", "", "t", "", "", "", "", "", ""][i], cap: c[1], capk: CREDITS_KM[k] ? CREDITS_KM[k][0] : "" }; });
+const demoGallery = () => demoGalleryItems();
 
 // SEO. Indexing (robots, canonical, sitemap) is NOT read from the CMS: it is set when the website is deployed.
 const SEO_SLOT = { home: "home-hero", about: "about-story" };
@@ -502,8 +502,8 @@ function chrome() {
   document.querySelectorAll(".lang button").forEach((b) => (b.onclick = () => { lang = b.dataset.l; try { localStorage.setItem("cmeha-lang", lang); } catch {} render(); }));
 }
 
-const tile = (p, cls = "") => `<button class="tile rv ${cls}" data-open="${p.id}" aria-haspopup="dialog">${pic(p)}<span class="tx"><span class="chip">${cat(p.c)}</span><h3>${ctext(p, "t")}</h3><p>${ctext(p, "d")}</p></span></button>`;
-const homeTile = (p, cls = "") => `<a class="tile rv ${cls}" href="programs.html#p=${p.id}">${pic(p)}<span class="tx"><span class="chip">${cat(p.c)}</span><h3>${ctext(p, "t")}</h3><p>${ctext(p, "d")}</p></span></a>`;
+const tile = (p, cls = "") => `<button class="tile rv ${cls}" data-open="${p.id}" aria-haspopup="dialog">${pic(p)}<span class="tx"><span class="chip">${cat(p.c)}</span><h3>${ctext(p, "t")}</h3><p>${ctext(p, "d")}</p>${DEMO ? `<span class="more">${t("viewDetails")}${ic("arrow")}</span>` : ""}</span></button>`;
+const homeTile = (p, cls = "") => `<a class="tile rv ${cls}" href="programs.html#p=${p.id}">${pic(p)}<span class="tx"><span class="chip">${cat(p.c)}</span><h3>${ctext(p, "t")}</h3><p>${ctext(p, "d")}</p>${DEMO ? `<span class="more">${t("viewDetails")}${ic("arrow")}</span>` : ""}</span></a>`;
 const dateBlock = (d, sample) => sample ? `<span class="date sample" title="${esc(T.en.sampleDate)}"><b>—</b><i>${T[lang].sample}</i></span>` : !d ? "" : `<span class="date"><b>${d[2]}</b><i>${lang === "km" ? MON.km[d[1] - 1] : MON.en[d[1] - 1]}</i></span>`;
 const metaLine = (n) => `<div class="meta"><span class="chip alt">${t("ty")[n.k] || T[lang].ty[n.k]}</span>${n.sample ? `<span>${ic("cal")}${t("sampleDate")}</span>` : n.d ? `<span>${ic("cal")}${fmt(n.d)}</span>` : ""}</div>`;
 const newsRow = (n) => `<button class="row rv" data-news="${n.id}" aria-haspopup="dialog"><div class="im">${pic(n)}</div><div>${metaLine(n)}<h3>${ctext(n, "t")}</h3></div></button>`;
@@ -613,14 +613,14 @@ function progDialog(p) {
   const actions = `<div class="dlg-actions"><button class="btn btn-gold" type="button" data-proposal>${ic("chat")}${tb("reqProposal")}</button><span class="hint">${tb("reqHint")}</span></div>`;
   const body = p.live
     ? `${p.d ? `<p>${ctext(p, "d")}</p>` : ""}${p.body ? (p.fb_body && lang === "km" ? enb(p.body) : p.body) : ""}${p.proj.length ? `<h3 style="font-size:17px">${t("projects")}</h3><ul>${p.proj.map((x) => `<li>${x.fb && lang === "km" ? en(x.t) : x.t}</li>`).join("")}</ul>` : ""}`
-    : `<p>${ctext(p, "d")}</p><p class="hint">${tb("areaDetail")}</p>`;
+    : `<p>${ctext(p, "d")}</p>${p.body ? `<p>${ctext(p, "body")}</p>` : ""}<p class="hint">${tb("areaDetail")}</p>`;
   dialog(`<div class="dlg-art">${pic(p)}</div><div class="dlg-body"><span class="chip">${cat(p.c)}</span>${p.area ? `<span class="chip alt">${tb("proposedChip")}</span>` : ""}<h2>${ctext(p, "t")}</h2>${body}${p.area && p.live ? `<p class="hint">${tb("areaDetail")}</p>` : ""}${actions}</div>`);
   const b = document.querySelector("#dlg [data-proposal]");
   if (b) b.onclick = () => openProposal(propTitle(p));
 }
 const newsDialog = (n) => dialog(`<div class="dlg-art">${pic(n)}</div><div class="dlg-body">${metaLine(n)}<h2>${ctext(n, "t")}</h2>${n.live
   ? `${n.k === "event" && n.loc ? `<p class="meta"><span>${ic("pin")}${ctext(n, "loc")}</span></p>` : ""}${n.x && n.k !== "event" ? `<p>${ctext(n, "x")}</p>` : ""}${n.body ? (n.fb_body && lang === "km" ? enb(n.body) : n.body) : ""}`
-  : `<p>${ctext(n, "x")}</p><p>${t("sampleBody")}</p>`}</div>`);
+  : `<p><b>${ctext(n, "x")}</b></p>${n.body ? ctext(n, "body") : `<p>${t("sampleBody")}</p>`}`}</div>`);
 
 /* ---------------- Request a Proposal ----------------
    No server is involved: the buttons are plain links that open WhatsApp (wa.me) or the visitor's own email app with a message that
@@ -674,7 +674,7 @@ function programsPage() {
     });
     // the proposed areas (nothing published yet) read better as one 2 x 2 grid than as four stacked full-width cards
     if (AREAS_ONLY() && cur === "all" && !q && n) html = `<div class="pgrid areas" data-n="${n}">${PROGRAMS.map((p) => tile(p)).join("")}</div>`;
-    list.innerHTML = areaNoteHtml() + (n ? html : `<div class="empty">${PROGRAMS.length ? tb("noRes") : t("emptyProg")}</div>`) + (AREAS_ONLY() ? `<p class="previewnote" style="margin-top:28px">${tb("projectsNone")}</p>` : ""); bind(list); reveal(); kmNoteSync();
+    list.innerHTML = areaNoteHtml() + (n ? html : `<div class="empty">${PROGRAMS.length ? tb("noRes") : t("emptyProg")}</div>`) + (AREAS_ONLY() && !DEMO ? `<p class="previewnote" style="margin-top:28px">${tb("projectsNone")}</p>` : ""); bind(list); reveal(); kmNoteSync();
   };
   document.querySelectorAll("[data-cat]").forEach((b) => (b.onclick = () => { cur = b.dataset.cat; history.replaceState(null, "", cur === "all" ? "programs.html" : "#cat=" + cur); draw(); }));
   document.querySelector("#q").oninput = draw; draw();
@@ -690,7 +690,7 @@ function galleryPage() {
     mas.innerHTML = shown.map((g, i) => `<button class="${shown.length < 5 ? "" : cur === "all" ? g.s : i === 0 ? "w" : ""}" data-i="${i}" data-cap="${g.live ? g.cap : gcap(g)}" aria-label="${g.live ? g.cap : gcap(g)} — ${T[lang].gcat[g.c]}">${gpic(g)}</button>`).join("");
     mas.querySelectorAll("[data-i]").forEach((b) => (b.onclick = () => { idx = +b.dataset.i; show(); lb.showModal(); })); kmNoteSync();
   };
-  const show = () => { const g = shown[idx]; document.querySelector("#lbs").innerHTML = gpic(g); document.querySelector("#lbc").textContent = g.capRaw || gcap(g); document.querySelector("#lbm").textContent = `${T[lang].gcat[g.c]} · ${idx + 1} ${t("of")} ${shown.length}`; };
+  const show = () => { const g = shown[idx]; document.querySelector("#lbs").innerHTML = gpic(g); document.querySelector("#lbc").textContent = g.capRaw || gcap(g); document.querySelector("#lbm").textContent = `${T[lang].gcat[g.c]} · ${idx + 1} ${t("of")} ${shown.length}` + (g.credit ? " · " + g.credit : ""); };
   const step = (d) => { idx = (idx + d + shown.length) % shown.length; show(); };
   document.querySelectorAll("[data-g]").forEach((b) => (b.onclick = () => { cur = b.dataset.g; draw(); }));
   document.querySelector("#lbx").onclick = () => lb.close(); document.querySelector("#lbp").onclick = () => step(-1); document.querySelector("#lbn").onclick = () => step(1);
@@ -718,8 +718,157 @@ function render() {
   chrome();
   const main = document.querySelector("#main"); main.innerHTML = PAGES[PAGE]();
   bind(main);
-  if (PAGE === "programs") programsPage(); if (PAGE === "gallery") galleryPage(); if (PAGE === "contact") contactPage();
+  if (PAGE === "news") { const m = /n=([\w-]+)/.exec(location.hash); const a = m && NEWS.find((x) => x.id === m[1]); if (a) newsDialog(a); } if (PAGE === "programs") programsPage(); if (PAGE === "gallery") galleryPage(); if (PAGE === "contact") contactPage();
   reveal();
   kmNoteSync();
 }
+/* ---------------- final client-review content (static website proposal only) ----------------
+   Everything below is presentation copy written from CMEHA's official profile. It makes no claim about completed projects, dates, figures,
+   people or partnerships. New wording (English and Khmer) is listed for client approval in C030-CLIENT-CONTENT-APPROVAL-CHECKLIST.md. */
+Object.assign(T.en, {
+  rightsDemo: "© 2026 Cambodian Muslim Education and Humanitarian Association. All rights reserved.",
+  // Home
+  focusH: "Our focus areas", focusP: "Four areas of work that follow CMEHA’s mission to advance education and humanitarian care in Cambodia.",
+  purposeEy: "Our purpose", purposeH: "What we aim to achieve", purposeP: "Three objectives guide CMEHA’s educational and humanitarian work.",
+  pu1t: "Well-being, education and the environment", pu2t: "A stronger young generation", pu3t: "Care for people in need",
+  commEy: "Community & opportunity", commH: "Community, education and opportunity",
+  commP1: "CMEHA is built on brotherhood and collaboration. Membership is open to Muslim graduates from universities recognized by CMEHA and to all members of the community in Cambodia, regardless of race or religion, so that education and humanitarian work can be shared across the community.",
+  commP2: "Its planned work brings schools and communities together around learning — from scholarships and community education to skills development and humanitarian assistance.",
+  commBtn: "Learn about membership", homeNewsH: "Articles about CMEHA", homeNewsAll: "View all news & events",
+  // About
+  storyEy: "Who we are", storyH: "Who CMEHA is",
+  storyP1: "Cambodian Muslim Education and Humanitarian Association (CMEHA) is a Cambodian non-governmental organization working in education and humanitarian activities.",
+  storyP2: "Education is at the heart of its mission: to raise funds for community education and for student scholarships in Cambodia and overseas, to develop human resources, and to prepare education programs together with schools and communities.",
+  storyP3: "CMEHA also promotes humanitarian and charitable activities and is committed to assisting victims, people who are sick, and orphans.",
+  storyP4: "These values are reflected in the association’s logo: a generation of educated individuals, knowledge, graduates, and brotherhood and collaboration.",
+  glanceH: "At a glance", g1: "Non-governmental organization", g2: "Education and humanitarian work", g3: "Membership open to the community",
+  memHow: "Interested in membership? Write to us at",
+  // Programs
+  prLede: "CMEHA’s work is organised around four focus areas that follow its mission to support education and humanitarian care in Cambodia. Select a card to read more.",
+  viewDetails: "View details", proposedChip: "Focus area",
+  areaDetail: "This is one of CMEHA’s focus areas. Specific programs, schedules and projects will be announced by CMEHA.",
+  // News & Events
+  nwPhP: "Articles about CMEHA’s mission and areas of work.", evH: "Events", evP: "Information about future events will be announced through CMEHA. To be informed, write to",
+  // Gallery
+  gaPhPDemo: "Photographs on the themes of education, learning, community and care. Select a picture to view it in full.",
+  galCredit: "Photographs are licensed images; the photographer and licence of each one are listed on the", photoBy: "Photo:",
+  // Contact
+  coPhPDemo: "We would be glad to hear from you. Write to CMEHA for general enquiries, education, humanitarian cooperation or membership.",
+  chHead: "How we can help", chBtn: "Email CMEHA", formH: "Write your message", sendDemo: "Open email draft",
+  ch1: "General enquiries", ch1d: "Questions about CMEHA", ch2: "Education", ch2d: "Ask about CMEHA’s education focus", ch3: "Humanitarian cooperation", ch3d: "Ask about working together", ch4: "Membership", ch4d: "Ask about joining CMEHA",
+  formHintDemo: "This form does not send your message from the website. It opens your email app with your message ready — please press Send there.",
+  openedMail: "Your email app should open with your message ready. If nothing opens, please write to"
+});
+Object.assign(T.km, {
+  rightsDemo: "© 2026 សមាគមអប់រំ និងមនុស្សធម៌មុស្លិមកម្ពុជា។ រក្សាសិទ្ធិគ្រប់យ៉ាង។",
+  focusH: "ផ្នែកផ្តោតសំខាន់របស់យើង", focusP: "វិស័យការងារបួន ដែលអនុវត្តតាមបេសកកម្មរបស់ CMEHA ក្នុងការជំរុញការអប់រំ និងការយកចិត្តទុកដាក់ផ្នែកមនុស្សធម៌នៅកម្ពុជា។",
+  purposeEy: "គោលបំណងរបស់យើង", purposeH: "អ្វីដែលយើងមានបំណងសម្រេច", purposeP: "គោលដៅបីដែលដឹកនាំការងារអប់រំ និងមនុស្សធម៌របស់ CMEHA។",
+  pu1t: "សុខុមាលភាព ការអប់រំ និងបរិស្ថាន", pu2t: "យុវជនជំនាន់ក្រោយដែលរឹងមាំ", pu3t: "ការយកចិត្តទុកដាក់ចំពោះអ្នកត្រូវការជំនួយ",
+  commEy: "សហគមន៍ និងឱកាស", commH: "សហគមន៍ ការអប់រំ និងឱកាស",
+  commP1: "CMEHA ស្អាងឡើងលើភាតរភាព និងកិច្ចសហការ។ សមាជិកភាពបើកចំហសម្រាប់និស្សិតមូស្លិមទាំងអស់ ដែលបានបញ្ចប់ការសិក្សាពីសាកលវិទ្យាល័យដែលត្រូវបាន CMEHA ទទួលស្គាល់ និងសម្រាប់សមាជិកទាំងអស់នៃសហគមន៍នៅកម្ពុជា ដោយមិនប្រកាន់ពូជសាសន៍ ឬសាសនា ដើម្បីឱ្យការងារអប់រំ និងមនុស្សធម៌ត្រូវបានចែករំលែកក្នុងសហគមន៍។",
+  commP2: "ការងារដែលបានគ្រោងរបស់សមាគមនាំសាលារៀន និងសហគមន៍មកជួបជុំគ្នាជុំវិញការរៀនសូត្រ — ចាប់ពីអាហារូបករណ៍ និងការអប់រំសហគមន៍ ដល់ការអភិវឌ្ឍជំនាញ និងជំនួយមនុស្សធម៌។",
+  commBtn: "ស្វែងយល់អំពីសមាជិកភាព", homeNewsH: "អត្ថបទអំពី CMEHA", homeNewsAll: "មើលព័ត៌មាន និងព្រឹត្តិការណ៍ទាំងអស់",
+  storyEy: "យើងជានរណា", storyH: "CMEHA ជានរណា",
+  storyP1: "សមាគមអប់រំ និងមនុស្សធម៌មុស្លិមកម្ពុជា (CMEHA) ជាអង្គការមិនមែនរដ្ឋាភិបាលកម្ពុជា ដែលធ្វើការងារផ្នែកអប់រំ និងសកម្មភាពមនុស្សធម៌។",
+  storyP2: "ការអប់រំគឺជាបេះដូងនៃបេសកកម្មរបស់សមាគម៖ ស្វែងរកមូលនិធិសម្រាប់ការអប់រំក្នុងសហគមន៍ និងអាហារូបករណ៍សិស្ស-និស្សិតនៅកម្ពុជា និងបរទេស អភិវឌ្ឍធនធានមនុស្ស និងរៀបចំកម្មវិធីអប់រំរួមជាមួយសាលារៀន និងសហគមន៍។",
+  storyP3: "CMEHA ក៏ជំរុញសកម្មភាពមនុស្សធម៌ និងសប្បុរសធម៌ ហើយប្តេជ្ញាជួយជនរងគ្រោះ អ្នកជំងឺ និងកុមារកំព្រា។",
+  storyP4: "តម្លៃទាំងនេះឆ្លុះបញ្ចាំងនៅក្នុងនិមិត្តសញ្ញារបស់សមាគម៖ ជំនាន់នៃបុគ្គលដែលមានការអប់រំ ចំណេះដឹង អ្នកបញ្ចប់ការសិក្សា ភាតរភាព និងកិច្ចសហការ។",
+  glanceH: "ទិដ្ឋភាពទូទៅ", g1: "អង្គការមិនមែនរដ្ឋាភិបាល", g2: "ការអប់រំ និងការងារមនុស្សធម៌", g3: "សមាជិកភាពបើកចំហសម្រាប់សហគមន៍",
+  memHow: "ចាប់អារម្មណ៍ចូលជាសមាជិក? សូមសរសេរមកយើងតាម",
+  prLede: "ការងាររបស់ CMEHA ត្រូវបានរៀបចំជុំវិញផ្នែកផ្តោតសំខាន់បួន ដែលអនុវត្តតាមបេសកកម្មរបស់ខ្លួនក្នុងការគាំទ្រការអប់រំ និងការយកចិត្តទុកដាក់ផ្នែកមនុស្សធម៌នៅកម្ពុជា។ សូមជ្រើសរើសកាតមួយ ដើម្បីអានបន្ថែម។",
+  viewDetails: "មើលព័ត៌មានលម្អិត", proposedChip: "ផ្នែកផ្តោតសំខាន់",
+  areaDetail: "នេះជាផ្នែកផ្តោតសំខាន់មួយរបស់ CMEHA។ កម្មវិធី កាលវិភាគ និងគម្រោងជាក់លាក់នឹងត្រូវបានប្រកាសដោយ CMEHA។",
+  nwPhP: "អត្ថបទអំពីបេសកកម្ម និងវិស័យការងាររបស់ CMEHA។", evH: "ព្រឹត្តិការណ៍", evP: "ព័ត៌មានអំពីព្រឹត្តិការណ៍នាពេលអនាគតនឹងត្រូវបានប្រកាសតាមរយៈ CMEHA។ ដើម្បីទទួលបានព័ត៌មាន សូមសរសេរមកកាន់",
+  gaPhPDemo: "រូបថតអំពីប្រធានបទការអប់រំ ការរៀនសូត្រ សហគមន៍ និងការយកចិត្តទុកដាក់។ សូមជ្រើសរើសរូបភាពមួយដើម្បីមើលពេញ។",
+  galCredit: "រូបថតទាំងនេះជារូបភាពដែលមានអាជ្ញាប័ណ្ណ។ ឈ្មោះអ្នកថត និងអាជ្ញាប័ណ្ណនៃរូបនីមួយៗមានចុះក្នុងទំព័រ", photoBy: "រូបថតដោយ៖",
+  coPhPDemo: "យើងរីករាយនឹងទទួលដំណឹងពីអ្នក។ សូមសរសេរមក CMEHA សម្រាប់សំណួរទូទៅ ការអប់រំ កិច្ចសហការមនុស្សធម៌ ឬសមាជិកភាព។",
+  chHead: "របៀបដែលយើងអាចជួយបាន", chBtn: "សរសេរអ៊ីមែលមក CMEHA", formH: "សរសេរសាររបស់អ្នក", sendDemo: "បើកសេចក្តីព្រាងអ៊ីមែល",
+  ch1: "សំណួរទូទៅ", ch1d: "សំណួរអំពី CMEHA", ch2: "ការអប់រំ", ch2d: "សួរអំពីការផ្តោតលើការអប់រំរបស់ CMEHA", ch3: "កិច្ចសហការមនុស្សធម៌", ch3d: "សួរអំពីការធ្វើការរួមគ្នា", ch4: "សមាជិកភាព", ch4d: "សួរអំពីការចូលជាសមាជិក CMEHA",
+  formHintDemo: "ទម្រង់នេះមិនផ្ញើសាររបស់អ្នកពីគេហទំព័រទេ។ វាបើកកម្មវិធីអ៊ីមែលរបស់អ្នកជាមួយសារដែលរៀបចំរួច — សូមចុចផ្ញើនៅទីនោះ។",
+  openedMail: "កម្មវិធីអ៊ីមែលរបស់អ្នកគួរបើកជាមួយសារដែលរៀបចំរួច។ ប្រសិនបើគ្មានអ្វីបើក សូមសរសេរមកកាន់"
+});
+T.en.crExDemo = "Photographs on this website are licensed images from Pexels (Pexels License) and Wikimedia Commons (open licences). The photographer, source and licence of each one are listed below. They illustrate education and community themes in Cambodia and do not show CMEHA, its members or its programs.";
+T.km.crExDemo = "រូបថតនៅលើគេហទំព័រនេះជារូបភាពដែលមានអាជ្ញាប័ណ្ណពី Pexels (អាជ្ញាប័ណ្ណ Pexels) និង Wikimedia Commons (អាជ្ញាប័ណ្ណបើកចំហ)។ ឈ្មោះអ្នកថត ប្រភព និងអាជ្ញាប័ណ្ណនៃរូបនីមួយៗមានចុះក្នុងបញ្ជីខាងក្រោម។ រូបទាំងនេះបង្ហាញប្រធានបទអប់រំ និងសហគមន៍នៅកម្ពុជា មិនមែនបង្ហាញ CMEHA សមាជិក ឬកម្មវិធីរបស់ CMEHA ទេ។";
+T.en.ty.article = "Article"; T.km.ty = T.km.ty || {}; T.km.ty.article = "អត្ថបទ";
+T.en.gcat.photo = "Photograph"; T.km.gcat.photo = "រូបថត";
+
+// fuller descriptions of the four focus areas (from the mission and targets; no project, date, place or figure is claimed)
+const AREA_BODY = {
+  a1: ["Education is at the centre of CMEHA’s mission. This focus area covers CMEHA’s intention to prepare education programs for communities, together with schools and local communities, and to raise funds that support community education.", "ការអប់រំគឺជាចំណុចស្នូលនៃបេសកកម្មរបស់ CMEHA។ ផ្នែកនេះគ្របដណ្តប់លើបំណងរបស់ CMEHA ក្នុងការរៀបចំកម្មវិធីអប់រំសម្រាប់សហគមន៍ ជាមួយសាលារៀន និងសហគមន៍ក្នុងតំបន់ និងស្វែងរកមូលនិធិដើម្បីគាំទ្រការអប់រំក្នុងសហគមន៍។"],
+  a2: ["CMEHA’s mission includes raising funds for student scholarship programs, both within Cambodia and overseas. This focus area brings that commitment together: helping students to continue their education.", "បេសកកម្មរបស់ CMEHA រួមមានការស្វែងរកមូលនិធិសម្រាប់កម្មវិធីអាហារូបករណ៍សិស្ស-និស្សិត ទាំងនៅកម្ពុជា និងបរទេស។ ផ្នែកនេះប្រមូលផ្តុំការប្តេជ្ញាចិត្តនោះ ដើម្បីជួយសិស្ស-និស្សិតបន្តការសិក្សា។"],
+  a3: ["CMEHA aims to develop human resources and to train and strengthen the abilities of the younger generation. This focus area covers the human resource development programs that support those objectives.", "CMEHA មានគោលបំណងអភិវឌ្ឍធនធានមនុស្ស និងបណ្តុះបណ្តាល ព្រមទាំងពង្រឹងសមត្ថភាពយុវជនជំនាន់ក្រោយ។ ផ្នែកនេះគ្របដណ្តប់លើកម្មវិធីអភិវឌ្ឍធនធានមនុស្សដែលគាំទ្រគោលដៅទាំងនោះ។"],
+  a4: ["CMEHA promotes humanitarian and charitable activities and is committed to assisting victims, people who are sick, and orphans. This focus area brings those activities together.", "CMEHA ជំរុញសកម្មភាពមនុស្សធម៌ និងសប្បុរសធម៌ ហើយប្តេជ្ញាជួយជនរងគ្រោះ អ្នកជំងឺ និងកុមារកំព្រា។ ផ្នែកនេះប្រមូលផ្តុំសកម្មភាពទាំងនោះ។"]
+};
+PROPOSED_AREAS.forEach((a) => { const b = AREA_BODY[a.id]; if (b) { a.body = b[0]; a.bodyk = b[1]; } });
+
+// three explanatory articles from the official profile (not news reports: no dates, no events)
+const P = (arr) => arr.map((x) => `<p>${x}</p>`).join("");
+const DEMO_ARTICLES = [
+  { id: "n1", k: "article", ph: "a4",
+    t: "Understanding CMEHA’s Mission", tk: "ការយល់ដឹងអំពីបេសកកម្មរបស់ CMEHA",
+    x: "How CMEHA’s five-point mission connects education, scholarships, skills and humanitarian cooperation.", xk: "របៀបដែលបេសកកម្មប្រាំចំណុចរបស់ CMEHA ភ្ជាប់ការអប់រំ អាហារូបករណ៍ ជំនាញ និងកិច្ចសហការមនុស្សធម៌។",
+    body: P(["CMEHA’s mission brings together two purposes: advancing education and caring for people in need. Its five-point mission states how the association intends to work.", "The association’s mission is to raise funds for community education; to raise funds for student scholarship programs in Cambodia and overseas; to deliver human resource development programs; to prepare education programs for communities; and to collaborate with schools and communities on educational and humanitarian programs.", "Together, these commitments serve CMEHA’s vision of a prosperous and progressive society built through education and knowledge."]),
+    bodyk: P(["បេសកកម្មរបស់ CMEHA ផ្សំគ្នានូវគោលបំណងពីរ៖ ជំរុញការអប់រំ និងយកចិត្តទុកដាក់ចំពោះអ្នកត្រូវការជំនួយ។ បេសកកម្មប្រាំចំណុចរបស់សមាគមបញ្ជាក់អំពីរបៀបដែលសមាគមមានបំណងធ្វើការ។", "បេសកកម្មរបស់សមាគមគឺ៖ ស្វែងរកមូលនិធិសម្រាប់ការអប់រំក្នុងសហគមន៍ ស្វែងរកមូលនិធិសម្រាប់កម្មវិធីអាហារូបករណ៍សិស្ស-និស្សិតនៅកម្ពុជា និងបរទេស អនុវត្តកម្មវិធីអភិវឌ្ឍធនធានមនុស្ស រៀបចំកម្មវិធីអប់រំសម្រាប់សហគមន៍ និងសហការជាមួយសាលារៀន និងសហគមន៍លើកម្មវិធីអប់រំ និងមនុស្សធម៌។", "ការប្តេជ្ញាចិត្តទាំងនេះរួមគ្នាបម្រើចក្ខុវិស័យរបស់ CMEHA ក្នុងការកសាងសង្គមដែលមានវិបុលភាព និងភាពរីកចម្រើន តាមរយៈការអប់រំ និងចំណេះដឹង។"]) },
+  { id: "n2", k: "article", ph: "a3",
+    t: "Education and Knowledge: CMEHA’s Areas of Focus", tk: "ការអប់រំ និងចំណេះដឹង៖ ផ្នែកផ្តោតសំខាន់របស់ CMEHA",
+    x: "An overview of the four focus areas that guide CMEHA’s educational and humanitarian work.", xk: "ទិដ្ឋភាពទូទៅនៃផ្នែកផ្តោតសំខាន់ទាំងបួន ដែលដឹកនាំការងារអប់រំ និងមនុស្សធម៌របស់ CMEHA។",
+    body: P(["CMEHA organises its work around four focus areas: Community Education, Scholarships, Human Resource Development and Humanitarian Assistance. They follow directly from the association’s mission and objectives.", "Community Education is about preparing education programs with schools and communities; Scholarships, about supporting students in Cambodia and overseas; Human Resource Development, about strengthening the abilities of the younger generation; and Humanitarian Assistance, about helping victims, people who are sick, and orphans.", "Specific programs, schedules and projects will be announced by CMEHA as they are confirmed."]),
+    bodyk: P(["CMEHA រៀបចំការងាររបស់ខ្លួនជុំវិញផ្នែកផ្តោតសំខាន់បួន៖ ការអប់រំសហគមន៍ អាហារូបករណ៍ ការអភិវឌ្ឍធនធានមនុស្ស និងជំនួយមនុស្សធម៌។ ផ្នែកទាំងនេះកើតចេញដោយផ្ទាល់ពីបេសកកម្ម និងគោលដៅរបស់សមាគម។", "ការអប់រំសហគមន៍ គឺអំពីការរៀបចំកម្មវិធីអប់រំជាមួយសាលារៀន និងសហគមន៍ អាហារូបករណ៍ គឺអំពីការគាំទ្រសិស្ស-និស្សិតនៅកម្ពុជា និងបរទេស ការអភិវឌ្ឍធនធានមនុស្ស គឺអំពីការពង្រឹងសមត្ថភាពយុវជនជំនាន់ក្រោយ ហើយជំនួយមនុស្សធម៌ គឺអំពីការជួយជនរងគ្រោះ អ្នកជំងឺ និងកុមារកំព្រា។", "កម្មវិធី កាលវិភាគ និងគម្រោងជាក់លាក់ នឹងត្រូវបានប្រកាសដោយ CMEHA នៅពេលដែលត្រូវបានបញ្ជាក់។"]) },
+  { id: "n3", k: "article", ph: "a2",
+    t: "CMEHA Membership and Community Participation", tk: "សមាជិកភាព និងការចូលរួមរបស់សហគមន៍",
+    x: "Who can become a member of CMEHA, and how to ask about joining.", xk: "អ្នកណាអាចក្លាយជាសមាជិករបស់ CMEHA និងរបៀបសួរអំពីការចូលរួម។",
+    body: P(["CMEHA has two categories of members. Ordinary membership is open to all Muslim graduates from universities recognized by CMEHA.", "Associate membership is open to all members of the community in Cambodia, regardless of race or religion.", "To ask about membership or to cooperate with CMEHA, write to info@cmeha-cambodia.org."]),
+    bodyk: P(["CMEHA មានប្រភេទសមាជិកពីរ។ សមាជិកសាមញ្ញបើកចំហសម្រាប់និស្សិតមូស្លិមទាំងអស់ ដែលបានបញ្ចប់ការសិក្សាពីសាកលវិទ្យាល័យដែលត្រូវបាន CMEHA ទទួលស្គាល់។", "សមាជិកសហការីបើកចំហសម្រាប់សមាជិកទាំងអស់នៃសហគមន៍នៅកម្ពុជា ដោយមិនប្រកាន់ពូជសាសន៍ ឬសាសនា។", "ដើម្បីសួរអំពីសមាជិកភាព ឬសហការជាមួយ CMEHA សូមសរសេរមកកាន់ info@cmeha-cambodia.org។"]) }
+];
+const ncard = (n, href) => `<${href ? `a href="${href}"` : `button data-news="${n.id}" aria-haspopup="dialog"`} class="ncard rv"><div class="im">${pic(n)}</div><div class="nbd"><span class="chip alt">${(T[lang].ty || T.en.ty).article}</span><h3>${ctext(n, "t")}</h3><p>${ctext(n, "x")}</p><span class="link">${t("readMore")}${ic("arrow")}</span></div></${href ? "a" : "button"}>`;
+
+// the credited stock photographs, captioned neutrally (no places, no claim that they show CMEHA)
+const DEMO_PHOTOS = [["a1", "Learning with computers", "ការរៀនជាមួយកុំព្យូទ័រ"], ["p3", "Children reading together", "កុមារអានសៀវភៅជាមួយគ្នា"], ["a2", "A village street", "ផ្លូវក្នុងភូមិ"], ["p5", "Schoolchildren outdoors", "សិស្សសាលានៅខាងក្រៅ"], ["a3", "Students travelling to school by boat", "សិស្សធ្វើដំណើរទៅសាលាតាមទូក"], ["p1", "Graduation day", "ថ្ងៃបញ្ចប់ការសិក្សា"], ["a4", "Sitting an entrance examination", "ការប្រឡងចូលរៀន"], ["p4", "Time together by the water", "ពេលវេលារួមគ្នាក្បែរទឹក"], ["a5", "Students at a university workshop", "និស្សិតនៅសិក្ខាសាលាសកលវិទ្យាល័យ"], ["p2", "Volunteers tidying a public space", "អ្នកស្ម័គ្រចិត្តសម្អាតទីសាធារណៈ"], ["intro", "Working together outdoors", "ធ្វើការងាររួមគ្នានៅខាងក្រៅ"], ["p6", "A young woman with her bicycle", "ស្ត្រីវ័យក្មេងជាមួយកង់របស់នាង"]];
+const demoGalleryItems = () => DEMO_PHOTOS.map(([k, en, km], i) => { const c = CREDITS.find((x) => x[0] === k); return { photo: k, c: "photo", s: ["big", "", "t", "", "w", "", "", "t", "", "w", "w", ""][i], cap: en, capk: km, credit: `${t("photoBy")} ${c[3]} (${c[6]})` }; });
+
+if (DEMO) {
+  const em = () => allEmails()[0];
+  const heroSection = `<section class="hero">${heroPic()}<div class="wrap"><div class="copy rv"><span class="eyebrow">${t("heroEy")}</span><h1>${heroTitle()}</h1><p class="lede">${heroLede()}</p><div class="btns"><a class="btn btn-gold" href="programs.html">${t("c1")}${ic("arrow")}</a><a class="btn btn-ghost" href="contact.html">${t("c2")}</a></div></div></div></section>`;
+  const aboutBlock = `<section class="s"><div class="wrap split"><div class="frame rv">${ph("intro", "center 28%")}</div><div class="rv"><span class="eyebrow">${t("abEy")}</span><h2 style="font-size:clamp(28px,3.4vw,40px);margin-top:10px">${tb("abH")}</h2><div class="mv"><div><h3>${ic("eye")}${t("mission")}</h3><p>${esc(ofl().missionShort)}</p></div><div><h3>${ic("spark")}${t("vision")}</h3><p>${esc(ofl().vision)}</p></div></div><a class="link" href="about.html">${t("learn")}${ic("arrow")}</a></div></div></section>`;
+  const pageHead = (eyebrow, h1, lede, art, cls = "split") => `<section class="ph"><div class="wrap ${cls}"><div class="rv"><span class="eyebrow">${eyebrow}</span><h1>${h1}</h1><p class="lede">${lede}</p></div>${art ? `<div class="art rv">${art}</div>` : ""}</div></section>`;
+
+  PAGES.home = () => `${heroSection}${aboutBlock}
+  <section class="s soft" id="focus"><div class="wrap"><div class="sec-h"><div><span class="eyebrow">${t("prEy")}</span><h2>${t("focusH")}</h2></div><p>${t("focusP")}</p></div>${homeProgramsBlock()}<p style="margin:28px 0 0"><a class="link" href="programs.html">${t("allProg")}${ic("arrow")}</a></p></div></section>
+  <section class="s"><div class="wrap"><div class="sec-h"><div><span class="eyebrow">${t("purposeEy")}</span><h2>${t("purposeH")}</h2></div><p>${t("purposeP")}</p></div><div class="purpose-grid">${ofl().targets.map((x, i) => `<article class="pcard rv"><span class="pnum">${i + 1}</span><h3>${t("pu" + (i + 1) + "t")}</h3><p>${esc(x)}</p></article>`).join("")}</div></div></section>
+  <section class="s soft"><div class="wrap split comm"><div class="rv"><span class="eyebrow">${t("commEy")}</span><h2 style="font-size:clamp(28px,3.4vw,40px);margin:10px 0 16px">${t("commH")}</h2><p>${t("commP1")}</p><p>${t("commP2")}</p><div class="btns" style="margin-top:22px"><a class="btn btn-blue" href="about.html#membership">${t("commBtn")}${ic("arrow")}</a></div></div><div class="collage rv"><div class="c1">${ph("a5", "center 30%")}</div><div class="c2">${ph("p3", "center 35%")}</div></div></div></section>
+  <section class="s"><div class="wrap"><div class="sec-h"><div><span class="eyebrow">${t("nwEy")}</span><h2>${t("homeNewsH")}</h2></div><a class="link" href="news.html">${t("homeNewsAll")}${ic("arrow")}</a></div><div class="ngrid">${DEMO_ARTICLES.map((n) => ncard(n, "news.html#n=" + n.id)).join("")}</div></div></section>
+  ${cta()}`;
+
+  PAGES.about = () => `${pageHead(t("abPh"), t("abEy"), esc(ofl().intro), slotPic("about-photo", "about", "center 40%") + `<img class="badge" src="assets/logo.jpg" alt="${t("logoAlt")}">`)}
+  <section class="s" id="story"><div class="wrap split story2"><div class="rv"><span class="eyebrow">${t("storyEy")}</span><h2 style="font-size:clamp(28px,3.4vw,40px);margin:10px 0 18px">${t("storyH")}</h2><p>${t("storyP1")}</p><p>${t("storyP2")}</p><p>${t("storyP3")}</p><p>${t("storyP4")}</p></div><aside class="glance rv" aria-label="${t("glanceH")}"><h3>${t("glanceH")}</h3><ul><li><span class="ib">${ic("shield")}</span>${t("g1")}</li><li><span class="ib">${ic("book")}</span>${t("g2")}</li><li><span class="ib">${ic("users")}</span>${t("g3")}</li></ul></aside></div></section>
+  <section class="s soft"><div class="wrap"><div class="panels rv"><div class="p1"><h2><span class="ib">${ic("eye")}</span>${t("vision")}</h2><div class="vision-text"><p>${esc(ofl().vision)}</p></div></div><div class="p2"><h2><span class="ib">${ic("spark")}</span>${t("mission")}</h2>${listHtml(ofl().mission, "ol")}</div></div></div></section>
+  <section class="s"><div class="wrap"><div class="sec-h"><div><span class="eyebrow">${tb("tgtEy")}</span><h2>${tb("tgtH")}</h2></div></div>${listHtml(ofl().targets, "ol").replace('class="olist"', 'class="olist tgts rv"')}</div></section>
+  <section class="s soft"><div class="wrap"><div class="sec-h"><div><span class="eyebrow">${tb("lmEy")}</span><h2>${tb("lmH")}</h2></div><p>${tb("lmP")}</p></div>${logoMeaning()}</div></section>
+  <section class="s" id="membership"><div class="wrap"><div class="sec-h"><div><span class="eyebrow">${tb("memEy")}</span><h2>${tb("memH")}</h2></div><p>${tb("memP")}</p></div>${membershipCards()}<p class="mem-how rv">${t("memHow")} <a href="mailto:${em()}?subject=${encodeURIComponent("Membership enquiry")}">${em()}</a></p></div></section>
+  ${leadershipSection()}${cta()}`;
+
+  PAGES.programs = () => `${pageHead(t("prPh"), t("prPhH"), t("prLede"), slotPic("programs-photo", "a1", "center 40%"))}
+  <div class="fbar" hidden><div class="wrap in"><div class="pills"></div><label class="search"><span class="sr">${t("search")}</span><input type="search" id="q"></label></div></div>
+  <section class="s" style="padding-top:8px"><div class="wrap" id="plist" aria-live="polite"></div></section>${cta()}`;
+
+  PAGES.news = () => `${pageHead(t("nwPh"), t("nwPhH"), tb("nwPhP"), slotPic("news-photo", "p4", "center 40%"))}
+  <section class="s" style="padding-top:20px"><div class="wrap"><div class="ngrid">${DEMO_ARTICLES.map((n) => ncard(n)).join("")}</div>
+  <div class="ev-band rv"><span class="ib">${ic("cal")}</span><div><h2>${t("evH")}</h2><p>${t("evP")} <a href="mailto:${em()}?subject=${encodeURIComponent("Event information")}">${em()}</a></p></div><a class="btn btn-blue" href="mailto:${em()}?subject=${encodeURIComponent("Event information")}">${ic("mail")}${t("emailUs")}</a></div></div></section>${cta()}`;
+
+  PAGES.gallery = () => `${pageHead(t("gaPh"), t("gaPhH"), t("gaPhPDemo"), ph("hero", "26% center"))}
+  <section class="s" style="padding-top:28px"><div class="wrap"><div class="mas" id="mas"></div><p class="credit-line">${t("galCredit")} <a href="credits.html">${t("credits")}</a>.</p></div></section>
+  <dialog class="lb" id="lb" aria-label="${t("gaPh")}"><div class="stage" id="lbs"></div><button class="xbtn close" aria-label="${t("close")}" id="lbx">${ic("x")}</button><button class="xbtn prev" aria-label="${t("prev")}" id="lbp">${ic("left")}</button><button class="xbtn next" aria-label="${t("next")}" id="lbn">${ic("right")}</button><div class="cap"><div><b id="lbc"></b><span id="lbm"></span></div></div></dialog>${cta()}`;
+
+  const help = [["mail", "ch1", "General enquiry"], ["book", "ch2", "Education programs enquiry"], ["hand", "ch3", "Humanitarian cooperation enquiry"], ["users", "ch4", "Membership enquiry"]];
+  PAGES.contact = () => `${pageHead(t("coPh"), t("coPhH"), t("coPhPDemo"), "", "")}
+  <section class="s" style="padding-top:20px"><div class="wrap"><div class="cgrid rv"><div class="cinfo"><h2>${t("details")}</h2>
+    <div class="mailrow"><span class="ib">${ic("mail")}</span><div><small>${t("emailL")}</small><a class="bigmail" href="mailto:${em()}">${em()}</a></div></div>
+    <a class="btn btn-gold cbtn" href="mailto:${em()}">${ic("mail")}${t("chBtn")}</a>
+    <h3 class="chh">${t("chHead")}</h3><ul class="chl">${help.map(([i, k, s]) => `<li><a href="mailto:${em()}?subject=${encodeURIComponent(s)}"><span class="ib">${ic(i)}</span><span><b>${t(k)}</b><small>${t(k + "d")}</small></span></a></li>`).join("")}</ul></div>
+    <form class="cform" id="f" novalidate><h2>${t("formH")}</h2>
+      <div class="two"><div class="fld"><label for="fn">${t("name")}</label><input id="fn" name="n" autocomplete="name" required maxlength="100" aria-describedby="en-n"><div class="err" id="en-n"></div></div><div class="fld"><label for="fe">${t("email")}</label><input id="fe" name="e" type="email" autocomplete="email" required maxlength="254" aria-describedby="en-e"><div class="err" id="en-e"></div></div></div>
+      <div class="fld"><label for="fm">${t("msg")}</label><textarea id="fm" name="m" rows="6" required maxlength="5000" aria-describedby="en-m"></textarea><div class="err" id="en-m"></div></div>
+      <button class="btn btn-blue" type="submit">${t("sendDemo")}${ic("arrow")}</button><p class="hint">${t("formHintDemo")}</p><div id="fs" role="status" aria-live="polite"></div></form></div></div></section>`;
+}
+
 void Promise.resolve().then(render);
